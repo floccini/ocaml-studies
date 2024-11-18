@@ -61,7 +61,7 @@ square 3 + 1;;
 square (3 + 1);;
 (* which results in square = 16 *)
 
-(* multiple arugments functions*)
+(* multiple arguments functions*)
 let distance x y = x - y |> abs;;
 
 distance 5 3;;
@@ -83,3 +83,175 @@ Returns:
 With that, the function receives a list of values of type 'a, apply the function that transforms type 'a into 'b and retorn a list of type 'b.
 Besides that, List.map is a polimorphic function since it can be used with whatever type the data you are sending is.
 *)
+
+(* currying 
+process of transforming a function that receives multiple arguments in a sequency of functions that receives a single argument
+this allows you to partially apply a function
+*)
+
+let sum x y = x + y;;
+
+(* sum is a function that receives x and return a function, that function receives argument y and return the sum of x and y *)
+
+let sum x = fun y -> x + y;;
+
+sum 3 4;;
+(* doing like that , sum 3 return a partial function that adds 3 to any value, then, this new function is applied to the argument 4 *)
+
+(* partial application *)
+(* add3 in this case turns into a function that adds 3 to any number *)
+let add3 = sum 3;;
+let result = add3 5;;
+
+(* if we do not want to use curry, we create a function that receives all the arguments at once, using tuples *)
+(* in this case, the function expects a single argument which is a tuple containing two numbers *)
+let sum_tuple (x, y) = x + y;;
+
+let multiply_by x y = x * y;;
+
+let double = multiply_by 2;;
+
+let result = double 5;;
+
+Printf.printf "%d" result
+
+(* prefix and infix *)
+(* prefix functions is the regular form of working with functions, prefixing the function with its name followed by its parameters *)
+sum 5 2;;
+
+(* infix functions are use between its arguments, for example, arithmetic operators, like +, *, - and / *)
+(* you can also create your own infixed functions like the following example, passing the operator first *)
+(* useful for certains expressions, making them more readable *)
+
+let add_1 = (+) 1;;
+
+add_1 2;;
+
+(* using the distance function shown before as an example to apply it as an infix function, we have: *)
+
+(* |> and <| is our operatos to identify the function *)
+let (|><|) x y = x -y |> abs;;
+
+(* then we can use it as *)
+
+3 |><| 2;;
+
+3 |><| 2 |><| 6;;
+
+(* 3 - 2 -> 1 -> 6 - 1 -> 5 *)
+
+(* lambda functions *)
+(* to initialize a lambda function, we use the word fun, followed by its arguments, a -> that separates the body of the function and the
+declaration of the function
+*)
+
+List.map(fun x -> x * x) [1;2;3];;
+(* [1;4;9] *)
+
+(fun x y -> x - y |> abs) 20 35;;
+(* 15 *)
+
+(* recursive functions *)
+
+(* to initialize a recursive function, we use the word rec *)
+
+(* recursively removes an item from the list *)
+(* [] -> 0 -> if the list is empty, return 0 *)
+(* _::xs -> list with n elements, it separates the list and adding the first element to _, 
+this element is called head, and the rest is called tail.
+*)
+let rec size = function
+    | [] -> 0
+    | _::xs -> 1 + size xs;;
+
+size [1;2;5];;
+(*
+how it works:
+
+size [1;2;5]
+    1::[2;5] -> 1 + size [2;5]
+
+size [2;5]
+    2::[5] -> 1 + size [5]
+
+size [5]
+    5::[] -> 1 + 0
+
+size [2;5]
+    2::5 -> 1 + 1
+
+size [1;2;5]
+    1::[2;5] -> 1 + 2
+
+result = 3
+
+*)
+
+(* another recursive example using factorial calculus *)
+
+let rec factorial n =
+  if n < 2 then
+    1
+  else
+    n * fatorial (n - 1)
+
+
+(* pipe operator *)
+(* we can first pass the value then the function using the |> operator *)
+
+(* useful when we want to do a sequence of function calls using the returned value from the previous function*)
+
+7. |> sin;;
+
+(* instead of *)
+
+sin 7.;;
+
+(* we can also use the backwards pipe operator, that basically passes the value to the previous declared function *)
+
+(*in ocaml 4.1 or previous, this operator was <| but then it got changed to @@*)
+
+sin @@ 2. + 1.;;
+
+(* we can also mix both operators, which makes the funtion syntax similar to a infix function *)
+(* min is a built-in function that receives 2 int and returns the lowest int *)
+min 10 5;;
+
+7 |> min @@ 2;;
+
+
+(* function composition *)
+(* composition is when we connect the output of a function to the input of another one, and store that in a new function.
+*)
+
+(* added the definitions for << and >> since they are not built-int OCaml operators *)
+let (<<) f g x = f(g(x));;
+let (>>) f g x = g(f(x));;
+
+let minus x y = x - y |> abs;;
+
+let minus_one = minus 1;;
+
+let multiply x y = x * y;;
+
+let byTwo = multiply 2;;
+
+(* examples without composition *)
+
+minus_one 9;;
+(* 8 *)
+
+ byTwo 8;;
+(* 16 *)
+
+(* using composition *)
+
+let minusOneThenMultiply = byTwo << minus_one;;
+
+minusOneThenMultiply 9;;
+(* 16 *)
+
+let multiplyThenMinusOne = byTwo >> minus_one;;
+
+multiplyThenMinusOne 9;;
+(* 17 *)
